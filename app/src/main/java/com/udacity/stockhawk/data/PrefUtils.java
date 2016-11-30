@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.udacity.stockhawk.R;
-import com.udacity.stockhawk.sync.QuoteSyncJob;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -71,8 +70,9 @@ public final class PrefUtils {
 
 	public static boolean validateSymbol(Context context, String symbol) {
 
-		return QuoteSyncJob.getStock(context, symbol) != null;
+		//return QuoteSyncJob.getStock(context, symbol) != null;
 
+		return true;
 	}
 
 

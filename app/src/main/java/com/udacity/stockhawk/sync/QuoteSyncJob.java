@@ -59,7 +59,7 @@ public final class QuoteSyncJob {
 
             Map<String, Stock> quotes = YahooFinance.get(stockArray);
             //Iterator<String> iterator = stockCopy.iterator();
-			Iterator<String> iterator = quotes.keySet().iterator();
+			Iterator<String> iterator = quotes.keySet().iterator(); //iterate over the returned quotes (the ones that exist)
 
 			Timber.d(quotes.toString());
 
@@ -68,11 +68,22 @@ public final class QuoteSyncJob {
             while (iterator.hasNext()) {
                 String symbol = iterator.next();
 
+				Timber.d("quote: %s", symbol);
 
                 Stock stock = quotes.get(symbol);
-                StockQuote quote = stock.getQuote();
+                StockQuote quote = stock.getQuote(false);
 
-                float price = quote.getPrice().floatValue();
+				if (quote == null || quote.getPrice()==null) {
+
+					Timber.d("quote null: %s", symbol);
+
+					continue;
+				}
+
+
+				stockCopy.remove(symbol);
+
+				float price = quote.getPrice().floatValue();
                 float change = quote.getChange().floatValue();
                 float percentChange = quote.getChangeInPercent().floatValue();
 
@@ -101,6 +112,12 @@ public final class QuoteSyncJob {
                 quoteCVs.add(quoteCV);
 
             }
+
+			for (String nonReturned: stockCopy) {
+				Timber.d("quote to be removed: %s", nonReturned);
+				//TODO remove from prevs
+				PrefUtils.removeStock(context, nonReturned);
+			}
 
             context.getContentResolver()
                     .bulkInsert(

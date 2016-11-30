@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.udacity.stockhawk.R;
+import com.udacity.stockhawk.sync.QuoteSyncJob;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -60,6 +61,20 @@ public final class PrefUtils {
     public static void removeStock(Context context, String symbol) {
         editStockPref(context, symbol, false);
     }
+
+    public static boolean stockExists(Context context, String symbol) {
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+		return getStocks(context).contains(symbol);
+
+    }
+
+	public static boolean validateSymbol(Context context, String symbol) {
+
+		return QuoteSyncJob.getStock(context, symbol) != null;
+
+	}
+
 
     public static String getDisplayMode(Context context) {
         String key = context.getString(R.string.pref_display_mode_key);

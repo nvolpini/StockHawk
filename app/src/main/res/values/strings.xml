@@ -36,5 +36,7 @@
     <string name="toast_stock_added_no_connectivity">Symbol %s added. Will refresh when network available.</string>
     <string name="toast_no_connectivity">Will refresh when network available.</string>
 	<string name="add_stock_cd">Add new stock</string>
+	<string name="toast_stock_already_exists">Stock with symbol %s already exists.</string>
+	<string name="toast_stock_not_found">No stock found for symbol %s.</string>
 
 </resources>

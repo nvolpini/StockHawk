@@ -58,9 +58,10 @@ public final class QuoteSyncJob {
             }
 
             Map<String, Stock> quotes = YahooFinance.get(stockArray);
-            Iterator<String> iterator = stockCopy.iterator();
+            //Iterator<String> iterator = stockCopy.iterator();
+			Iterator<String> iterator = quotes.keySet().iterator();
 
-            Timber.d(quotes.toString());
+			Timber.d(quotes.toString());
 
             ArrayList<ContentValues> quoteCVs = new ArrayList<>();
 
@@ -114,6 +115,16 @@ public final class QuoteSyncJob {
         }
     }
 
+	static Stock getStock(Context context, String symbol) {
+		try {
+			return YahooFinance.get(symbol);
+		} catch (IOException exception) {
+			Timber.e(exception, "Error fetching stock %s", symbol);
+		}
+
+		return null;
+	}
+
     private static void schedulePeriodic(Context context) {
         Timber.d("Scheduling a periodic task");
 
@@ -138,6 +149,8 @@ public final class QuoteSyncJob {
         syncImmediately(context);
 
     }
+
+
 
     synchronized public static void syncImmediately(Context context) {
 

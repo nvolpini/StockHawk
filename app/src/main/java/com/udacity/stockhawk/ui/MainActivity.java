@@ -127,7 +127,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
 
-            PrefUtils.addStock(this, symbol);
+			if (PrefUtils.stockExists(this,symbol)) {
+				String message = getString(R.string.toast_stock_already_exists, symbol);
+				Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+			} else if (!PrefUtils.validateSymbol(this,symbol)) {
+				String message = getString(R.string.toast_stock_not_found, symbol);
+				Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+			} else {
+
+				PrefUtils.addStock(this, symbol);
+			}
+
             QuoteSyncJob.syncImmediately(this);
         }
     }

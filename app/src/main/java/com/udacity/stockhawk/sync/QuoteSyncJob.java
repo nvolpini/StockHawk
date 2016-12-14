@@ -60,7 +60,7 @@ public final class QuoteSyncJob {
             Map<String, Stock> quotes = YahooFinance.get(stockArray);
             Iterator<String> iterator = stockCopy.iterator();
 
-            Timber.d(quotes.toString());
+            Timber.d("saved quote symbols: %s",quotes.toString());
 
             ArrayList<ContentValues> quoteCVs = new ArrayList<>();
 

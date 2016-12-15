@@ -75,8 +75,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
-                PrefUtils.removeStock(MainActivity.this, symbol);
+				String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
+
+				Timber.d("removing stock: %s", symbol);
+
+
+				PrefUtils.removeStock(MainActivity.this, symbol);
                 getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
             }
         }).attachToRecyclerView(recyclerView);
@@ -102,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             error.setVisibility(View.VISIBLE);
         } else if (!networkUp()) {
             swipeRefreshLayout.setRefreshing(false);
+			error.setText(getString(R.string.error_no_network));
+			error.setVisibility(View.VISIBLE);
             Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
         } else if (PrefUtils.getStocks(this).size() == 0) {
             Timber.d("WHYAREWEHERE");
@@ -127,7 +133,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
 
-            PrefUtils.addStock(this, symbol);
+			if (PrefUtils.stockExists(this,symbol)) {
+				String message = getString(R.string.toast_stock_already_exists, symbol);
+				Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+			} else if (!PrefUtils.validateSymbol(this,symbol)) {
+				String message = getString(R.string.toast_stock_not_found, symbol);
+				Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+			} else {
+
+				PrefUtils.addStock(this, symbol);
+			}
+
             QuoteSyncJob.syncImmediately(this);
         }
     }

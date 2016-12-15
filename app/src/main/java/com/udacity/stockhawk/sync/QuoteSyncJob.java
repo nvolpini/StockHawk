@@ -42,36 +42,61 @@ public final class QuoteSyncJob {
 
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
-        from.add(Calendar.YEAR, -2);
+        //from.add(Calendar.YEAR, -2);
+		from.add(Calendar.MONTH, -1);
 
         try {
 
             Set<String> stockPref = PrefUtils.getStocks(context);
+
+			Timber.d("saved quote symbols: %s",stockPref.toString());
+
             Set<String> stockCopy = new HashSet<>();
             stockCopy.addAll(stockPref);
             String[] stockArray = stockPref.toArray(new String[stockPref.size()]);
 
-            Timber.d(stockCopy.toString());
+            //Timber.d(stockCopy.toString());
 
             if (stockArray.length == 0) {
                 return;
             }
 
             Map<String, Stock> quotes = YahooFinance.get(stockArray);
-            Iterator<String> iterator = stockCopy.iterator();
 
-            Timber.d("saved quote symbols: %s",quotes.toString());
+			Timber.d("returned quote symbols: %s",quotes.keySet().toString());
+
+			Timber.d("returned quotes: %s",quotes.toString());
+
+            //Iterator<String> iterator = stockCopy.iterator();
+			//invalid requested symbols are returned anyway - test inside the loop
+			Iterator<String> iterator = quotes.keySet().iterator();
+
+
 
             ArrayList<ContentValues> quoteCVs = new ArrayList<>();
 
             while (iterator.hasNext()) {
                 String symbol = iterator.next();
 
+				Timber.d("processing quote: %s", symbol);
 
                 Stock stock = quotes.get(symbol);
-                StockQuote quote = stock.getQuote();
+                StockQuote quote = stock.getQuote(false);
 
-                float price = quote.getPrice().floatValue();
+				Timber.d("returned stock: %s", stock);
+				Timber.d("returned quote: %s", quote);
+
+				if (quote == null || quote.getPrice()==null) {
+
+					Timber.d("ignoring invalid quote symbol: %s", symbol);
+
+					continue;
+				}
+
+				//if the symbol is valid, remove from the iterator
+				stockCopy.remove(symbol);
+
+				float price = quote.getPrice().floatValue();
                 float change = quote.getChange().floatValue();
                 float percentChange = quote.getChangeInPercent().floatValue();
 
@@ -99,7 +124,14 @@ public final class QuoteSyncJob {
 
                 quoteCVs.add(quoteCV);
 
-            }
+            }//while
+
+			//the symbols still in the array are invalid and must be removed
+			for (String nonReturned: stockCopy) {
+				Timber.d("invalid quote symbol removed: %s", nonReturned);
+				//TODO remove from prevs
+				PrefUtils.removeStock(context, nonReturned);
+			}
 
             context.getContentResolver()
                     .bulkInsert(
@@ -113,6 +145,16 @@ public final class QuoteSyncJob {
             Timber.e(exception, "Error fetching stock quotes");
         }
     }
+
+	static Stock getStock(Context context, String symbol) {
+		try {
+			return YahooFinance.get(symbol);
+		} catch (IOException exception) {
+			Timber.e(exception, "Error fetching stock %s", symbol);
+		}
+
+		return null;
+	}
 
     private static void schedulePeriodic(Context context) {
         Timber.d("Scheduling a periodic task");
@@ -138,6 +180,8 @@ public final class QuoteSyncJob {
         syncImmediately(context);
 
     }
+
+
 
     synchronized public static void syncImmediately(Context context) {
 

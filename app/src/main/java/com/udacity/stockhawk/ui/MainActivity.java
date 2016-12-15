@@ -110,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 			error.setVisibility(View.VISIBLE);
             Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
         } else if (PrefUtils.getStocks(this).size() == 0) {
-            Timber.d("WHYAREWEHERE");
             swipeRefreshLayout.setRefreshing(false);
             error.setText(getString(R.string.error_no_stocks));
             error.setVisibility(View.VISIBLE);

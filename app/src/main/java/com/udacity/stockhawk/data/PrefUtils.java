@@ -6,6 +6,8 @@ import android.preference.PreferenceManager;
 
 import com.udacity.stockhawk.R;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -108,4 +110,11 @@ public final class PrefUtils {
         editor.apply();
     }
 
+	private static DateFormat SHORT_DATE_FORMAT = DateFormat.getDateInstance(DateFormat.SHORT);
+
+	public static String format(Date date) {
+
+		return date == null ? null :  SHORT_DATE_FORMAT.format(date);
+
+	}
 }

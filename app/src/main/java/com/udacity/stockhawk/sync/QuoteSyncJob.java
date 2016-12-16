@@ -43,7 +43,7 @@ public final class QuoteSyncJob {
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
         //from.add(Calendar.YEAR, -2);
-		from.add(Calendar.MONTH, -1);
+		from.add(Calendar.MONTH, -6);
 
         try {
 

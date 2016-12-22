@@ -21,7 +21,8 @@
 	<string name="default_stocks_facebook" translatable="false">FB</string>
 
 
-	<string name="action_change_units">@string/pref_display_mode_key</string>
+	<string name="action_change_units" translatable="false">@string/pref_display_mode_key</string>
+	<string name="action_change_description">Change units</string>
 
 
 	<string name="dialog_title">Add Stock</string>
@@ -39,8 +40,5 @@
 	<string name="toast_stock_already_exists">Stock with symbol %s already exists.</string>
 	<string name="toast_stock_not_found">No stock found for symbol %s.</string>
 
-	<!-- TODO: Remove or change this placeholder text -->
-	<string name="hello_blank_fragment">Hello blank fragment</string>
-	<string name="title_activity_stock_chart">StockChartActivity</string>
 
 </resources>

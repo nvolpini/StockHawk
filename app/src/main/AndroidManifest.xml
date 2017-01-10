@@ -45,6 +45,16 @@
 				android:name="android.support.PARENT_ACTIVITY"
 				android:value="com.udacity.stockhawk.ui.MainActivity"/>
 		</activity>
+
+		<receiver android:name=".ui.StockHawkAppWidget">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+			</intent-filter>
+
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/stock_hawk_app_widget_info"/>
+		</receiver>
 	</application>
 
 </manifest>

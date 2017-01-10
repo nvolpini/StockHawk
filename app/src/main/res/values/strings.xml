@@ -40,5 +40,10 @@
 	<string name="toast_stock_already_exists">Stock with symbol %s already exists.</string>
 	<string name="toast_stock_not_found">No stock found for symbol %s.</string>
 
+	<string name="appwidget_text">EXAMPLE</string>
+	<string name="add_widget">Add widget</string>
+
+	<string name="title_activity_stock_chart">Stock Chart</string>
+
 
 </resources>

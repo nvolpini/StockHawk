@@ -4,10 +4,14 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.widget.RemoteViews;
 
@@ -15,8 +19,21 @@ import com.udacity.stockhawk.R;
 
 /**
  * Implementation of App Widget functionality.
+ *
+ * https://android.googlesource.com/platform/development/+/master/samples/WeatherListWidget/src/com/example/android/weatherlistwidget/WeatherWidgetProvider.java
  */
 public class WidgetProvider extends AppWidgetProvider {
+
+	private static WidgetDataProviderObserver sDataObserver;
+	private static HandlerThread sWorkerThread;
+	private static Handler sWorkerQueue;
+
+	public WidgetProvider() {
+		// Start the worker thread
+		sWorkerThread = new HandlerThread("StockWidgetProvider-worker");
+		sWorkerThread.start();
+		sWorkerQueue = new Handler(sWorkerThread.getLooper());
+	}
 
 	static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
 								int appWidgetId) {
@@ -72,7 +89,17 @@ public class WidgetProvider extends AppWidgetProvider {
 
 	@Override
 	public void onEnabled(Context context) {
-		// Enter relevant functionality for when the first widget is created
+		// Register for external updates to the data to trigger an update of the widget.  When using
+		// content providers, the data is often updated via a background service, or in response to
+		// user interaction in the main app.  To ensure that the widget always reflects the current
+		// state of the data, we must listen for changes and update ourselves accordingly.
+		final ContentResolver r = context.getContentResolver();
+		if (sDataObserver == null) {
+			final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+			final ComponentName cn = new ComponentName(context, WidgetProvider.class);
+			sDataObserver = new WidgetDataProviderObserver(mgr, cn, sWorkerQueue);
+			r.registerContentObserver(WeatherDataProvider.CONTENT_URI, true, sDataObserver);
+		}
 	}
 
 	@Override

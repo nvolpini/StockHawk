@@ -28,12 +28,21 @@
 					android:textAppearance="?android:attr/textAppearanceSmall"
 					android:textColor="#4B4B4D"
 					android:textStyle="bold" />
+
+
 		</LinearLayout>
 
-		<TextView
+		<Button
+			android:id="@+id/refresh"
 			android:layout_width="match_parent"
-			android:layout_height="1dp"
-			android:background="#aaa" />
+			android:layout_height="wrap_content"
+			android:padding="12dp"
+			android:gravity="center"
+			android:background="#F8F8F8"
+			android:text="refresh"
+			android:textAllCaps="true"
+			android:textColor="#232323"
+			android:textSize="14sp" />
 
 		<ListView
 			android:id="@+id/widgetCollectionList"

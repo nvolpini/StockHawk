@@ -4,18 +4,20 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Bundle;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import com.udacity.stockhawk.R;
+import com.udacity.stockhawk.data.Contract;
+
+import timber.log.Timber;
 
 /**
  * Created by neimar on 10/01/17.
  */
 
 public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
-	private Context mContext;
+
+			private Context mContext;
 	private Cursor mCursor;
 	private int mAppWidgetId;
 
@@ -43,25 +45,27 @@ public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 	public RemoteViews getViewAt(int position) {
 		// Get the data for this position from the content provider
 		String day = "Unknown Day";
-		int temp = 0;
+		float temp = 0;
 		if (mCursor.moveToPosition(position)) {
-			final int dayColIndex = mCursor.getColumnIndex(WeatherDataProvider.Columns.DAY);
-			final int tempColIndex = mCursor.getColumnIndex(
-					WeatherDataProvider.Columns.TEMPERATURE);
+			final int dayColIndex = mCursor.getColumnIndex(Contract.Quote.COLUMN_SYMBOL);
+			final int tempColIndex = mCursor.getColumnIndex(Contract.Quote.COLUMN_PRICE);
 			day = mCursor.getString(dayColIndex);
-			temp = mCursor.getInt(tempColIndex);
+			temp = mCursor.getFloat(tempColIndex);
 		}
-		// Return a proper item with the proper day and temperature
-		final String formatStr = mContext.getResources().getString(R.string.item_format_string);
-		final int itemId = R.layout.widget_item;
-		RemoteViews rv = new RemoteViews(mContext.getPackageName(), itemId);
-		rv.setTextViewText(R.id.widget_item, String.format(formatStr, temp, day));
+
+		Timber.d("getViewAt(%s) = %s", position, day);
+
+		RemoteViews rv = new RemoteViews(mContext.getPackageName(), android.R.layout.simple_list_item_1);
+		rv.setTextViewText(android.R.id.text1, day);
+
+		/*
 		// Set the click intent so that we can handle it and show a toast message
 		final Intent fillInIntent = new Intent();
 		final Bundle extras = new Bundle();
 		extras.putString(WeatherWidgetProvider.EXTRA_DAY_ID, day);
 		fillInIntent.putExtras(extras);
 		rv.setOnClickFillInIntent(R.id.widget_item, fillInIntent);
+		*/
 		return rv;
 	}
 
@@ -88,7 +92,8 @@ public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 		if (mCursor != null) {
 			mCursor.close();
 		}
-		mCursor = mContext.getContentResolver().query(WeatherDataProvider.CONTENT_URI, null, null,
-				null, null);
+		Timber.d("onDataSetChanged");
+
+		mCursor = mContext.getContentResolver().query(Contract.Quote.uri, null, null, null, null);
 	}
 }

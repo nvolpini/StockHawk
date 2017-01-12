@@ -1,6 +1,5 @@
 package com.udacity.stockhawk.ui.widget;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -10,12 +9,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.widget.RemoteViews;
 
 import com.udacity.stockhawk.R;
+import com.udacity.stockhawk.data.Contract;
+
+import timber.log.Timber;
 
 /**
  * Implementation of App Widget functionality.
@@ -23,6 +26,8 @@ import com.udacity.stockhawk.R;
  * https://android.googlesource.com/platform/development/+/master/samples/WeatherListWidget/src/com/example/android/weatherlistwidget/WeatherWidgetProvider.java
  */
 public class WidgetProvider extends AppWidgetProvider {
+
+	public static String REFRESH_ACTION = "com.udacity.stockhawk.ui.widget.REFRESH";
 
 	private static WidgetDataProviderObserver sDataObserver;
 	private static HandlerThread sWorkerThread;
@@ -37,6 +42,9 @@ public class WidgetProvider extends AppWidgetProvider {
 
 	static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
 								int appWidgetId) {
+
+		Timber.d("updateAppWidget(%s)", appWidgetId);
+
 		RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_provider_layout);
 //        views.setTextViewText(R.id.appwidget_text, widgetText);
 
@@ -52,6 +60,16 @@ public class WidgetProvider extends AppWidgetProvider {
 		} else {
 			setRemoteAdapterV11(context, views, intent);
 		}
+
+
+		// Bind the click intent for the refresh button on the widget
+		/*final Intent refreshIntent = new Intent(context, WidgetProvider.class);
+		refreshIntent.setAction(WidgetProvider.REFRESH_ACTION);
+		final PendingIntent refreshPendingIntent = PendingIntent.getBroadcast(context, 0,
+				refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		views.setOnClickPendingIntent(R.id.refresh, refreshPendingIntent);
+		*/
+
 		// Instruct the widget manager to update the widget
 		appWidgetManager.updateAppWidget(appWidgetId, views);
 	}
@@ -80,6 +98,8 @@ public class WidgetProvider extends AppWidgetProvider {
 
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+		Timber.d("onUpdate");
+
 		// There may be multiple widgets active, so update all of them
 		for (int appWidgetId : appWidgetIds) {
 			updateAppWidget(context, appWidgetManager, appWidgetId);
@@ -98,7 +118,9 @@ public class WidgetProvider extends AppWidgetProvider {
 			final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
 			final ComponentName cn = new ComponentName(context, WidgetProvider.class);
 			sDataObserver = new WidgetDataProviderObserver(mgr, cn, sWorkerQueue);
-			r.registerContentObserver(WeatherDataProvider.CONTENT_URI, true, sDataObserver);
+			//TODO nao tem uri geral pois o controle da relacao de stock e nas prefs
+			r.registerContentObserver(Contract.Quote.uri, true, sDataObserver);
+			Timber.d("setting observer...");
 		}
 	}
 
@@ -107,30 +129,33 @@ public class WidgetProvider extends AppWidgetProvider {
 		// Enter relevant functionality for when the last widget is disabled
 	}
 
-	//@Override
-	public void onUpdateX(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-		for (int widgetId : appWidgetIds) {
-			RemoteViews mView = initViews(context, appWidgetManager, widgetId);
-			appWidgetManager.updateAppWidget(widgetId, mView);
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		final String action = intent.getAction();
+		Timber.d("onReceive() - action: %s", action);
+
+		super.onReceive(context, intent);
+	}
+
+	@Override
+	public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager,
+										  int appWidgetId, Bundle newOptions) {
+		int minWidth = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
+		int maxWidth = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH);
+		int minHeight = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT);
+		int maxHeight = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT);
+		/*RemoteViews layout;
+		if (minHeight < 100) {
+			mIsLargeLayout = false;
+		} else {
+			mIsLargeLayout = true;
 		}
+		layout = buildLayout(context, appWidgetId, mIsLargeLayout);
+		appWidgetManager.updateAppWidget(appWidgetId, layout);*/
+		Timber.d("onAppWidgetOptionsChanged");
+
+		updateAppWidget(context, appWidgetManager, appWidgetId);
+
 	}
-
-	@SuppressWarnings("deprecation")
-	@SuppressLint("NewApi")
-	private RemoteViews initViews(Context context,
-								  AppWidgetManager widgetManager, int widgetId) {
-
-		RemoteViews mView = new RemoteViews(context.getPackageName(),
-				R.layout.widget_provider_layout);
-
-		Intent intent = new Intent(context, WidgetService.class);
-		intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
-
-		intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-		mView.setRemoteAdapter(widgetId, R.id.widgetCollectionList, intent);
-
-		return mView;
-	}
-
 }
 

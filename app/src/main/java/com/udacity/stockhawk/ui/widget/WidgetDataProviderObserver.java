@@ -7,6 +7,8 @@ import android.os.Handler;
 
 import com.udacity.stockhawk.R;
 
+import timber.log.Timber;
+
 /**
  * Created by neimar on 10/01/17.
  *
@@ -24,10 +26,13 @@ public class WidgetDataProviderObserver extends ContentObserver {
 	}
 	@Override
 	public void onChange(boolean selfChange) {
+
+		Timber.d("onChange");
+
 		// The data has changed, so notify the widget that the collection view needs to be updated.
 		// In response, the factory's onDataSetChanged() will be called which will requery the
 		// cursor for the new data.
 		mAppWidgetManager.notifyAppWidgetViewDataChanged(
-				mAppWidgetManager.getAppWidgetIds(mComponentName), R.id.weather_list);
+				mAppWidgetManager.getAppWidgetIds(mComponentName), R.id.widgetCollectionList);
 	}
 }

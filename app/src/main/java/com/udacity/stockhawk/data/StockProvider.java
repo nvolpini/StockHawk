@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import timber.log.Timber;
+
 
 public class StockProvider extends ContentProvider {
 
@@ -36,6 +38,9 @@ public class StockProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+
+		Timber.d("querying %s, sel: %s", uri, selection);
+
         Cursor returnCursor;
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 

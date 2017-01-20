@@ -6,9 +6,13 @@ import android.preference.PreferenceManager;
 
 import com.udacity.stockhawk.R;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public final class PrefUtils {
@@ -112,9 +116,46 @@ public final class PrefUtils {
 
 	private static DateFormat SHORT_DATE_FORMAT = DateFormat.getDateInstance(DateFormat.SHORT);
 
+	private static NumberFormat DECIMAL_FORMAT = DecimalFormat.getInstance();
+
+
+
+	public static String format(Float number) {
+
+		return dollarFormat.format(new BigDecimal(number.toString()));
+
+	}
+	private static DecimalFormat dollarFormatWithPlus;
+	private static DecimalFormat dollarFormat;
+	private static DecimalFormat percentageFormat;
+
+	static {
+		dollarFormat = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
+		dollarFormatWithPlus = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.US);
+		dollarFormatWithPlus.setPositivePrefix("+$");
+		percentageFormat = (DecimalFormat) NumberFormat.getPercentInstance(Locale.getDefault());
+		percentageFormat.setMaximumFractionDigits(2);
+		percentageFormat.setMinimumFractionDigits(2);
+		percentageFormat.setPositivePrefix("+");
+	}
+
 	public static String format(Date date) {
 
 		return date == null ? null :  SHORT_DATE_FORMAT.format(date);
 
+	}
+
+
+	public static String getCurrencySymbol() {
+		return null;
+	}
+
+	public static String dollarFormatWithPlus(float rawAbsoluteChange) {
+		return dollarFormatWithPlus.format(rawAbsoluteChange);
+
+	}
+
+	public static String percentageFormat(float v) {
+		return percentageFormat.format(v);
 	}
 }

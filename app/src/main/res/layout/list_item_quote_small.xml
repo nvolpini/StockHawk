@@ -10,7 +10,7 @@
 
     <TextView
         android:id="@+id/symbol"
-        style="@style/StockSymbolTextStyle"
+        style="@style/StockSymbolTextStyle.Widget"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="start|center_vertical"

@@ -1,6 +1,7 @@
 package com.udacity.stockhawk.ui.widget;
 
 import android.annotation.TargetApi;
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -16,6 +17,7 @@ import android.widget.RemoteViewsService;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
+import com.udacity.stockhawk.ui.MainActivity;
 
 import timber.log.Timber;
 
@@ -120,6 +122,14 @@ public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 			//holder.change.setText(percentage);
 			rv.setTextViewText(R.id.change,percentage);
 		}
+
+		//TODO handle click
+
+		// Create an Intent to launch MainActivity
+		Intent intent = new Intent(mContext, MainActivity.class);
+		PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent, 0);
+		rv.setOnClickPendingIntent(mAppWidgetId, pendingIntent);
+
 		/*
 		// Set the click intent so that we can handle it and show a toast message
 		final Intent fillInIntent = new Intent();

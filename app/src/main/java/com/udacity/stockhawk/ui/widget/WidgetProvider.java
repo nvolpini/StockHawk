@@ -1,6 +1,7 @@
 package com.udacity.stockhawk.ui.widget;
 
 import android.annotation.TargetApi;
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
@@ -17,6 +18,8 @@ import android.widget.RemoteViews;
 
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
+import com.udacity.stockhawk.ui.MainActivity;
+import com.udacity.stockhawk.ui.StockChartActivity;
 
 import timber.log.Timber;
 
@@ -27,7 +30,9 @@ import timber.log.Timber;
  */
 public class WidgetProvider extends AppWidgetProvider {
 
-	public static String REFRESH_ACTION = "com.udacity.stockhawk.ui.widget.REFRESH";
+	public static final String EXTRA_ITEM = "com.udacity.stockhawk.ui.widget.EXTRA_ITEM";
+	public static final String EXTRA_SYMBOL = "com.udacity.stockhawk.ui.widget.EXTRA_SYMBOL";
+	public static String CLICK_ACTION = "com.udacity.stockhawk.ui.widget.REFRESH";
 
 	private static WidgetDataProviderObserver sDataObserver;
 	private static HandlerThread sWorkerThread;
@@ -40,61 +45,6 @@ public class WidgetProvider extends AppWidgetProvider {
 		sWorkerQueue = new Handler(sWorkerThread.getLooper());
 	}
 
-	static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-								int appWidgetId) {
-
-		Timber.d("updateAppWidget(%s)", appWidgetId);
-
-		RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_provider_layout);
-//        views.setTextViewText(R.id.appwidget_text, widgetText);
-
-
-		Intent intent = new Intent(context, WidgetService.class);
-		intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-
-		intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-
-		// Set up the collection
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			setRemoteAdapter(context, views, intent);
-		} else {
-			setRemoteAdapterV11(context, views, intent);
-		}
-
-
-		// Bind the click intent for the refresh button on the widget
-		/*final Intent refreshIntent = new Intent(context, WidgetProvider.class);
-		refreshIntent.setAction(WidgetProvider.REFRESH_ACTION);
-		final PendingIntent refreshPendingIntent = PendingIntent.getBroadcast(context, 0,
-				refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-		views.setOnClickPendingIntent(R.id.refresh, refreshPendingIntent);
-		*/
-
-		// Instruct the widget manager to update the widget
-		appWidgetManager.updateAppWidget(appWidgetId, views);
-	}
-
-	/**
-	 * Sets the remote adapter used to fill in the list items
-	 *
-	 * @param views RemoteViews to set the RemoteAdapter
-	 * @param intent
-	 */
-	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	private static void setRemoteAdapter(Context context, @NonNull final RemoteViews views, Intent intent) {
-		views.setRemoteAdapter(R.id.widgetCollectionList, intent);
-	}
-
-	/**
-	 * Sets the remote adapter used to fill in the list items
-	 *
-	 * @param views RemoteViews to set the RemoteAdapter
-	 * @param intent
-	 */
-	@SuppressWarnings("deprecation")
-	private static void setRemoteAdapterV11(Context context, @NonNull final RemoteViews views, Intent intent) {
-		views.setRemoteAdapter(0, R.id.widgetCollectionList, intent);
-	}
 
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -133,9 +83,94 @@ public class WidgetProvider extends AppWidgetProvider {
 	public void onReceive(Context context, Intent intent) {
 		final String action = intent.getAction();
 		Timber.d("onReceive() - action: %s", action);
+		if (intent.getAction().equals(CLICK_ACTION)) {
+			int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+					AppWidgetManager.INVALID_APPWIDGET_ID);
+			int viewIndex = intent.getIntExtra(EXTRA_ITEM, 0);
+
+			String symbol = intent.getStringExtra(EXTRA_SYMBOL);
+
+			if (symbol != null) {
+
+				Intent openIntent = StockChartActivity.newIntent(context,symbol);
+				openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				openIntent.setData(Uri.parse(openIntent.toUri(Intent.URI_INTENT_SCHEME)));
+				context.startActivity(openIntent);
+
+			} else {
+
+				Intent openIntent = new Intent(context, MainActivity.class);
+				openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				openIntent.setData(Uri.parse(openIntent.toUri(Intent.URI_INTENT_SCHEME)));
+				context.startActivity(openIntent);
+			}
+
+			//Toast.makeText(context, "Touched view " + viewIndex, Toast.LENGTH_SHORT).show();
+		}
 
 		super.onReceive(context, intent);
 	}
+
+	static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
+								int appWidgetId) {
+
+		Timber.d("updateAppWidget(%s)", appWidgetId);
+
+		RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_provider_layout);
+//        views.setTextViewText(R.id.appwidget_text, widgetText);
+
+
+		Intent intent = new Intent(context, WidgetService.class);
+		intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+
+		intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+
+		// Set up the collection
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			setRemoteAdapter(appWidgetId, context, views, intent);
+		} else {
+			setRemoteAdapterV11(appWidgetId, context, views, intent);
+		}
+
+
+		final Intent refreshIntent = new Intent(context, WidgetProvider.class);
+		refreshIntent.setAction(WidgetProvider.CLICK_ACTION);
+		refreshIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+		intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+
+		final PendingIntent refreshPendingIntent = PendingIntent.getBroadcast(context, 0,
+				refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		views.setPendingIntentTemplate(R.id.widgetCollectionList, refreshPendingIntent);
+
+
+		// Instruct the widget manager to update the widget
+		appWidgetManager.updateAppWidget(appWidgetId, views);
+	}
+
+	/**
+	 * Sets the remote adapter used to fill in the list items
+	 *
+	 * @param appWidgetId
+	 * @param views RemoteViews to set the RemoteAdapter
+	 * @param intent
+	 */
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	private static void setRemoteAdapter(int appWidgetId, Context context, @NonNull final RemoteViews views, Intent intent) {
+		views.setRemoteAdapter(R.id.widgetCollectionList, intent);
+	}
+
+	/**
+	 * Sets the remote adapter used to fill in the list items
+	 *
+	 * @param appWidgetId
+	 * @param views RemoteViews to set the RemoteAdapter
+	 * @param intent
+	 */
+	@SuppressWarnings("deprecation")
+	private static void setRemoteAdapterV11(int appWidgetId, Context context, @NonNull final RemoteViews views, Intent intent) {
+		views.setRemoteAdapter(appWidgetId, R.id.widgetCollectionList, intent);
+	}
+
 
 	@Override
 	public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager,
